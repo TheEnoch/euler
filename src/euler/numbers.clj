@@ -32,6 +32,30 @@
                       (recur (inc k) (conj fcts k (/ n k)))
                       (recur (inc k) fcts)))))
 
+(defn digits
+  "turns a number into a sequence of digits"
+ [n] (map #(Integer/parseInt (str %)) (seq (str n))))
+
+(defn conj-next-prime
+  "takes a vector of primes and returns a vector 'conj'ed with the next prime")
+
+(defn next-prime?
+  "checks a candidate against a collection of previous primes to see if it is prime"
+  [n coll] (not (some (fn [p] (factor? p n)) coll)))
+
+(defn next-prime
+  "takes a vector of primes and returns the next prime"
+  [coll] (let [first-candidate (+ (last coll) 2)
+               candidates (iterate (partial + 2) first-candidate)]
+           (first (filter #(next-prime? % coll) candidates))))
+
+(defn primes
+  "retuns a lazy sequence of primes"
+  ([] (concat [2 3 5] (primes [2 3 5])))
+  ([so-far] (let [next-p (next-prime [so-far])
+                  next-so-far (conj so-far next-p)]
+              (lazy-seq ())) ))
+
 (defn prime?
   "checks a number to see if it is prime"
   [n]
@@ -39,7 +63,11 @@
 
 (defn prime-till
   "returns a sequence of prime numbers up to a certain value"
-  [n] (filter prime? (range 2 n)) )
+  [n] (take n (filter prime? (range 2 n))) )
+
+(defn prime-nth
+  "returns a sequence of primes until the nth prime number"
+  [n] (take n (filter prime? (range))))
 
 (defn highest-prime-factor
   "returns the highest prime factor of n"
@@ -54,16 +82,16 @@
   [n] (loop [k n
              PF []
              P  (prime-till (inc n))]
-                (let [p (first P)]
+        (let [p (first P)]
           (cond
-            (empty? P) PF
-            (zero? (mod k p)) (recur (/ k p)
-                                     (conj PF p)
-                                     P)
-            :else (recur k
-                         PF
-                         (rest P)
-                         )))))
+           (empty? P) PF
+           (zero? (mod k p)) (recur (/ k p)
+                                    (conj PF p)
+                                    P)
+           :else (recur k
+                        PF
+                        (rest P)
+                        )))))
 
 (defn GCD
   "returns the Greatest Common Divisor of two numbers"
@@ -76,3 +104,13 @@
 (defn square
   "returns the square of a number"
   [n] (* n n))
+
+(defn pythag?
+  "checks to see if a set of three numbers is a pythagorean triplet"
+  [x y z] (cond 
+           (not (< x y z)) false
+           (not= (* z z)
+                 (+ (* x x)
+                    (* y y))) false
+            :else true))
+
